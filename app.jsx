@@ -882,7 +882,7 @@ const DAYS = [
 // ════════════════════════════════════════════════════════════
 // HOME — El Camino (gating por fecha + cuenta atrás)
 // ════════════════════════════════════════════════════════════
-const ScreenHome = ({ state, currentDay, onOpenDay, onOpenCode, onOpenTortuga, onUnlock, preview=false }) => {
+const ScreenHome = ({ state, currentDay, onOpenDay, onOpenCode, onOpenTortuga, onUnlock, onReplayOnboarding, preview=false }) => {
   const [now, setNow] = useState(Date.now());
   useEffect(()=>{ const id=setInterval(()=>setNow(Date.now()),1000); return ()=>clearInterval(id); },[]);
 
@@ -912,7 +912,14 @@ const ScreenHome = ({ state, currentDay, onOpenDay, onOpenCode, onOpenTortuga, o
       <div style={{ padding:'calc(10px + env(safe-area-inset-top)) 24px 4px', flexShrink:0 }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div style={{...mn, fontSize:26, fontWeight:700, color:D}}>ari</div>
-          <Badge>{missionStarted ? `día ${currentDay} / 7` : '🔒 sin empezar'}</Badge>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            {onReplayOnboarding && (
+              <button onClick={onReplayOnboarding} style={{ display:'inline-flex', alignItems:'center', gap:4, background:'white', borderRadius:99, padding:'5px 10px', border:`1.5px solid ${L}`, ...mn, fontSize:10, fontWeight:600, color:G, cursor:'pointer', WebkitTapHighlightColor:'transparent' }}>
+                <span>💛</span><span>historia</span>
+              </button>
+            )}
+            <Badge>{missionStarted ? `día ${currentDay} / 7` : '🔒 sin empezar'}</Badge>
+          </div>
         </div>
         {onOpenTortuga && (
           <button onClick={onOpenTortuga} style={{ marginTop:6, background:'none', border:'none', padding:0, display:'flex', alignItems:'center', gap:6, ...mn, fontSize:12, color:B, cursor:'pointer' }}>
@@ -1435,7 +1442,7 @@ const App = () => {
   else if(view==='onboard1') content = <ScreenOnboardMemories onNext={()=>setView('onboard2')}/>;
   else if(view==='onboard2') content = <ScreenOnboardTogether onNext={()=>setView('reveal')}/>;
   else if(view==='reveal') content = <ScreenMisionReveal onStart={startMission} onBack={state.onboardingDone ? ()=>setView('home') : undefined} started={!!state.onboardingDone}/>;
-  else if(view==='home') content = <ScreenHome state={state} currentDay={currentDay} onOpenDay={openDay} onOpenCode={()=>setView('code')} onOpenTortuga={()=>setView('reveal')} onUnlock={unlockMission} preview={previewAll}/>;
+  else if(view==='home') content = <ScreenHome state={state} currentDay={currentDay} onOpenDay={openDay} onOpenCode={()=>setView('code')} onOpenTortuga={()=>setView('reveal')} onUnlock={unlockMission} onReplayOnboarding={()=>setView('onboard0')} preview={previewAll}/>;
   else if(view==='code') content = <ScreenCodeFinal api={api} onBack={()=>setView('home')}/>;
   else if(view==='day'){
     const back = ()=>setView('home');

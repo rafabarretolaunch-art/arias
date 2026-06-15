@@ -2433,6 +2433,7 @@ const ScreenHome = ({
   onOpenCode,
   onOpenTortuga,
   onUnlock,
+  onReplayOnboarding,
   preview = false
 }) => {
   const [now, setNow] = useState(Date.now());
@@ -2503,7 +2504,30 @@ const ScreenHome = ({
       fontWeight: 700,
       color: D
     }
-  }, "ari"), /*#__PURE__*/React.createElement(Badge, null, missionStarted ? `día ${currentDay} / 7` : '🔒 sin empezar')), onOpenTortuga && /*#__PURE__*/React.createElement("button", {
+  }, "ari"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8
+    }
+  }, onReplayOnboarding && /*#__PURE__*/React.createElement("button", {
+    onClick: onReplayOnboarding,
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 4,
+      background: 'white',
+      borderRadius: 99,
+      padding: '5px 10px',
+      border: `1.5px solid ${L}`,
+      ...mn,
+      fontSize: 10,
+      fontWeight: 600,
+      color: G,
+      cursor: 'pointer',
+      WebkitTapHighlightColor: 'transparent'
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "\uD83D\uDC9B"), /*#__PURE__*/React.createElement("span", null, "historia")), /*#__PURE__*/React.createElement(Badge, null, missionStarted ? `día ${currentDay} / 7` : '🔒 sin empezar'))), onOpenTortuga && /*#__PURE__*/React.createElement("button", {
     onClick: onOpenTortuga,
     style: {
       marginTop: 6,
@@ -4127,6 +4151,7 @@ const App = () => {
     onOpenCode: () => setView('code'),
     onOpenTortuga: () => setView('reveal'),
     onUnlock: unlockMission,
+    onReplayOnboarding: () => setView('onboard0'),
     preview: previewAll
   });else if (view === 'code') content = /*#__PURE__*/React.createElement(ScreenCodeFinal, {
     api: api,
