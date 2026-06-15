@@ -601,7 +601,7 @@ const ScreenSplash = () => (
       <img src={P.splashBg} style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', opacity:0.12 }}/>
       <div style={{ position:'relative', textAlign:'center' }}>
         <div style={{...mn, fontSize:92, fontWeight:700, color:Y, letterSpacing:-6, lineHeight:1, textShadow:`0 0 60px ${Y}55`}}>ari</div>
-        <div style={{ position:'absolute', bottom:2, right:-2, width:12, height:12, borderRadius:'50%', background:R, boxShadow:`0 0 14px ${R}` }}/>
+        <div style={{ position:'absolute', bottom:0, right:-7, width:12, height:12, borderRadius:'50%', background:R, boxShadow:`0 0 14px ${R}` }}/>
       </div>
       <div style={{...sk, fontSize:18, color:'rgba(255,255,255,0.38)', letterSpacing:2, position:'relative'}}>tus aventuras</div>
       <div style={{ display:'flex', gap:8, marginTop:20, position:'relative' }}>

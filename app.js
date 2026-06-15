@@ -1409,8 +1409,8 @@ const ScreenSplash = () => /*#__PURE__*/React.createElement(Screen, {
 }, "ari"), /*#__PURE__*/React.createElement("div", {
   style: {
     position: 'absolute',
-    bottom: 2,
-    right: -2,
+    bottom: 0,
+    right: -7,
     width: 12,
     height: 12,
     borderRadius: '50%',
