@@ -183,7 +183,15 @@ const downscaleImage = (file, max = 900, q = 0.72) => new Promise((res, rej) => 
 const SUPA_URL = 'https://dcpxvifjbuyjqtjonsfa.supabase.co';
 const SUPA_KEY = 'sb_publishable_L58ppXvRf7jO39F60zt9Iw_gGArzlWW';
 const SUPA_BUCKET = 'pruebas';
+const ADMIN_PIN = 'rafa2026'; // clave para ?admin=1 — cámbiala si quieres
+
 const slug = s => String(s || 'subida').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 40) || 'subida';
+const supaHeaders = (extra = {}) => ({
+  apikey: SUPA_KEY,
+  Authorization: `Bearer ${SUPA_KEY}`,
+  'Content-Type': 'application/json',
+  ...extra
+});
 const uploadToSupabase = async (file, folder = 'subidas') => {
   const ext = file.type && file.type.split('/')[1] || String(file.name || '').split('.').pop() || 'bin';
   const path = `${slug(folder)}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
@@ -201,6 +209,55 @@ const uploadToSupabase = async (file, folder = 'subidas') => {
     throw new Error('Supabase ' + res.status);
   }
   return path;
+};
+const filePublicUrl = path => `${SUPA_URL}/storage/v1/object/public/${SUPA_BUCKET}/${encodeURI(path)}`;
+const createSubmission = async (day, filePath) => {
+  const res = await fetch(`${SUPA_URL}/rest/v1/submissions`, {
+    method: 'POST',
+    headers: supaHeaders({
+      Prefer: 'return=representation'
+    }),
+    body: JSON.stringify({
+      day,
+      file_path: filePath,
+      status: 'pending'
+    })
+  });
+  if (!res.ok) throw new Error('submission ' + res.status);
+  const rows = await res.json();
+  return rows[0];
+};
+const fetchSubmission = async id => {
+  const res = await fetch(`${SUPA_URL}/rest/v1/submissions?id=eq.${id}&select=*`, {
+    headers: supaHeaders()
+  });
+  if (!res.ok) return null;
+  const rows = await res.json();
+  return rows[0] || null;
+};
+const listSubmissions = async status => {
+  let q = `${SUPA_URL}/rest/v1/submissions?select=*&order=created_at.desc`;
+  if (status) q += `&status=eq.${status}`;
+  const res = await fetch(q, {
+    headers: supaHeaders()
+  });
+  if (!res.ok) return [];
+  return res.json();
+};
+const setSubmissionStatus = async (id, status) => {
+  const res = await fetch(`${SUPA_URL}/rest/v1/submissions?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: supaHeaders({
+      Prefer: 'return=representation'
+    }),
+    body: JSON.stringify({
+      status,
+      updated_at: new Date().toISOString()
+    })
+  });
+  if (!res.ok) throw new Error('patch ' + res.status);
+  const rows = await res.json();
+  return rows[0];
 };
 
 // ════════════════════════════════════════════════════════════
@@ -2769,7 +2826,8 @@ const CompleteBar = ({
   onToggle,
   labelTodo = 'Marcar como completado',
   labelDone = '✓ Completado',
-  bg = B
+  bg = B,
+  disabled = false
 }) => /*#__PURE__*/React.createElement("div", {
   style: {
     padding: '10px 22px calc(14px + env(safe-area-inset-bottom))',
@@ -2779,7 +2837,8 @@ const CompleteBar = ({
   label: done ? labelDone : labelTodo,
   bg: done ? Y : bg,
   color: done ? D : 'white',
-  onClick: onToggle
+  onClick: onToggle,
+  disabled: disabled && !done
 }));
 
 // ════════════════════════════════════════════════════════════
@@ -2790,6 +2849,27 @@ const ScreenDay1 = ({
   onBack
 }) => {
   const photo = api.photos[1];
+  const review = api.reviews && api.reviews[1];
+  const status = review && review.status;
+  const uploading = !!api.uploading && api.uploading[1];
+  useEffect(() => {
+    if (!review || !review.id || status === 'approved') return;
+    const poll = async () => {
+      try {
+        const sub = await fetchSubmission(review.id);
+        if (sub && sub.status !== status) api.setReview(1, {
+          id: sub.id,
+          status: sub.status,
+          path: sub.file_path
+        });
+      } catch (e) {}
+    };
+    poll();
+    const id = setInterval(poll, 8000);
+    return () => clearInterval(id);
+  }, [review && review.id, status]);
+  const canComplete = photo && status === 'approved';
+  const barLabel = uploading ? 'Subiendo foto…' : status === 'pending' ? '⏳ Pendiente de aprobación' : status === 'rejected' ? '❌ Rechazada — sube otra foto' : !photo ? 'Sube tu foto primero' : 'Marcar como completado';
   return /*#__PURE__*/React.createElement(Screen, {
     bg: W
   }, /*#__PURE__*/React.createElement(DayHeader, {
@@ -2839,16 +2919,55 @@ const ScreenDay1 = ({
       color: G,
       marginTop: 8
     }
-  }, "Foto centrada, real, sin trampa.")), /*#__PURE__*/React.createElement("div", {
+  }, "Foto centrada, real, sin trampa.")), status === 'pending' && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      background: Y + '18',
+      borderRadius: 12,
+      padding: '10px 14px',
+      border: `1.5px solid ${Y}66`,
+      ...mn,
+      fontSize: 12,
+      color: '#7a6500',
+      lineHeight: 1.5,
+      flexShrink: 0
+    }
+  }, "\u23F3 Tu foto est\xE1 en revisi\xF3n. Te avisamos cuando est\xE9 aprobada."), status === 'rejected' && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      background: R + '12',
+      borderRadius: 12,
+      padding: '10px 14px',
+      border: `1.5px solid ${R}44`,
+      ...mn,
+      fontSize: 12,
+      color: R,
+      lineHeight: 1.5,
+      flexShrink: 0
+    }
+  }, "\u274C Esa foto no vale. Sube otra que cumpla el reto."), status === 'approved' && !api.completed[1] && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      background: B + '12',
+      borderRadius: 12,
+      padding: '10px 14px',
+      border: `1.5px solid ${B}44`,
+      ...mn,
+      fontSize: 12,
+      color: B,
+      lineHeight: 1.5,
+      flexShrink: 0
+    }
+  }, "\u2705 \xA1Aprobada! Ya puedes marcar el d\xEDa como completado."), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 12
     }
   }, /*#__PURE__*/React.createElement(UploadZone, {
     photo: photo,
-    onPick: f => api.setPhoto(1, f)
+    onPick: f => api.setPhoto(1, f),
+    hint: status === 'rejected' ? 'sube otra foto' : 'toca para tomar la foto'
   })), /*#__PURE__*/React.createElement(ProofShare, {
     title: "La Simetr\xEDa Perfecta",
-    text: "Mi foto de simetr\xEDa perfecta \uD83D\uDCF8",
     accent: B
   }), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2856,7 +2975,10 @@ const ScreenDay1 = ({
     }
   })), /*#__PURE__*/React.createElement(CompleteBar, {
     done: !!api.completed[1],
-    onToggle: () => api.toggleDay(1)
+    onToggle: () => canComplete && api.toggleDay(1),
+    labelTodo: barLabel,
+    disabled: !canComplete,
+    bg: B
   }));
 };
 
@@ -3994,11 +4116,278 @@ const ScreenCodeFinal = ({
 };
 
 // ════════════════════════════════════════════════════════════
+// ADMIN — aprobar / rechazar fotos (solo tú, ?admin=1)
+// ════════════════════════════════════════════════════════════
+const ScreenAdmin = ({
+  onBack
+}) => {
+  const [pin, setPin] = useState('');
+  const [authed, setAuthed] = useState(false);
+  const [items, setItems] = useState([]);
+  const [busy, setBusy] = useState('');
+  const [err, setErr] = useState('');
+  const load = async () => {
+    try {
+      const rows = await listSubmissions('pending');
+      setItems(rows);
+      setErr('');
+    } catch (e) {
+      setErr('No se pudieron cargar las pruebas.');
+    }
+  };
+  useEffect(() => {
+    if (authed) load();
+  }, [authed]);
+  const act = async (id, status) => {
+    setBusy(id + status);
+    try {
+      await setSubmissionStatus(id, status);
+      setItems(items.filter(x => x.id !== id));
+    } catch (e) {
+      setErr('Error al actualizar.');
+    } finally {
+      setBusy('');
+    }
+  };
+  if (!authed) return /*#__PURE__*/React.createElement(Screen, {
+    bg: D,
+    dark: true
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      padding: 'calc(24px + env(safe-area-inset-top)) 24px 24px'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onBack,
+    style: {
+      alignSelf: 'flex-start',
+      background: 'rgba(255,255,255,0.08)',
+      border: 'none',
+      borderRadius: 12,
+      width: 38,
+      height: 38,
+      ...mn,
+      fontSize: 17,
+      color: 'white',
+      cursor: 'pointer',
+      marginBottom: 24
+    }
+  }, "\u2190"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...mn,
+      fontSize: 22,
+      fontWeight: 700,
+      color: Y,
+      marginBottom: 8
+    }
+  }, "Admin"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...mn,
+      fontSize: 13,
+      color: 'rgba(255,255,255,0.5)',
+      marginBottom: 20
+    }
+  }, "Introduce tu clave para revisar pruebas."), /*#__PURE__*/React.createElement("input", {
+    type: "password",
+    value: pin,
+    onChange: e => setPin(e.target.value),
+    placeholder: "Clave",
+    style: {
+      height: 48,
+      borderRadius: 12,
+      border: '1px solid rgba(255,255,255,0.15)',
+      background: 'rgba(255,255,255,0.06)',
+      padding: '0 14px',
+      ...mn,
+      fontSize: 16,
+      color: 'white',
+      marginBottom: 12
+    }
+  }), /*#__PURE__*/React.createElement(Btn, {
+    label: "Entrar",
+    bg: Y,
+    color: D,
+    onClick: () => {
+      if (pin === ADMIN_PIN) setAuthed(true);else setErr('Clave incorrecta');
+    }
+  }), err && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...mn,
+      fontSize: 12,
+      color: R,
+      marginTop: 10
+    }
+  }, err)));
+  return /*#__PURE__*/React.createElement(Screen, {
+    bg: W
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      padding: 'calc(14px + env(safe-area-inset-top)) 20px 24px',
+      overflow: 'auto'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 16,
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...mn,
+      fontSize: 20,
+      fontWeight: 700,
+      color: D
+    }
+  }, "Pruebas pendientes"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...mn,
+      fontSize: 12,
+      color: G,
+      marginTop: 2
+    }
+  }, items.length, " en espera")), /*#__PURE__*/React.createElement("button", {
+    onClick: onBack,
+    style: {
+      background: 'white',
+      border: `1.5px solid ${L}`,
+      borderRadius: 12,
+      padding: '8px 12px',
+      ...mn,
+      fontSize: 12,
+      color: D,
+      cursor: 'pointer'
+    }
+  }, "\u2190 Salir")), err && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...mn,
+      fontSize: 12,
+      color: R,
+      marginBottom: 10
+    }
+  }, err), items.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...sk,
+      fontSize: 18,
+      color: G
+    }
+  }, "Nada pendiente \u2713") : items.map(item => /*#__PURE__*/React.createElement("div", {
+    key: item.id,
+    style: {
+      background: 'white',
+      borderRadius: 16,
+      border: `1.5px solid ${L}`,
+      overflow: 'hidden',
+      marginBottom: 14,
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '10px 14px',
+      borderBottom: `1px solid ${L}`,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...mn,
+      fontSize: 13,
+      fontWeight: 600,
+      color: D
+    }
+  }, "D\xEDa ", item.day), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...mn,
+      fontSize: 10,
+      color: G
+    }
+  }, new Date(item.created_at).toLocaleString('es'))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 220,
+      background: '#eee'
+    }
+  }, /*#__PURE__*/React.createElement("img", {
+    src: filePublicUrl(item.file_path),
+    alt: "",
+    style: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover'
+    },
+    onError: e => {
+      e.target.style.display = 'none';
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      padding: 12
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => act(item.id, 'rejected'),
+    disabled: !!busy,
+    style: {
+      flex: 1,
+      height: 44,
+      borderRadius: 12,
+      background: 'white',
+      border: `2px solid ${R}`,
+      ...mn,
+      fontSize: 13,
+      fontWeight: 600,
+      color: R,
+      cursor: 'pointer',
+      opacity: busy ? 0.5 : 1
+    }
+  }, "Rechazar"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => act(item.id, 'approved'),
+    disabled: !!busy,
+    style: {
+      flex: 1,
+      height: 44,
+      borderRadius: 12,
+      background: B,
+      border: `2px solid ${D}`,
+      ...mn,
+      fontSize: 13,
+      fontWeight: 600,
+      color: 'white',
+      cursor: 'pointer',
+      opacity: busy ? 0.5 : 1
+    }
+  }, "Aprobar \u2713")))), /*#__PURE__*/React.createElement("button", {
+    onClick: load,
+    style: {
+      marginTop: 8,
+      background: 'none',
+      border: 'none',
+      ...mn,
+      fontSize: 12,
+      color: B,
+      cursor: 'pointer',
+      flexShrink: 0
+    }
+  }, "\u21BB Actualizar")));
+};
+
+// ════════════════════════════════════════════════════════════
 // APP — router + estado
 // ════════════════════════════════════════════════════════════
 const App = () => {
   const [state, setState] = useState(loadState);
-  const [view, setView] = useState('splash');
+  const initParams = new URLSearchParams(location.search);
+  const [view, setView] = useState(initParams.get('admin') === '1' ? 'admin' : 'splash');
   const [day, setDay] = useState(1);
 
   // persistir cada cambio
@@ -4027,6 +4416,8 @@ const App = () => {
   const checks = state.checks || {};
   const scores = state.scores || {};
   const expedition = state.expedition || {};
+  const reviews = state.reviews || {};
+  const uploading = state.uploading || {};
   const api = {
     completed,
     photos,
@@ -4035,6 +4426,8 @@ const App = () => {
     scores,
     expedition,
     finalCode: state.finalCode,
+    reviews,
+    uploading,
     toggleDay: n => setState(s => ({
       ...s,
       completed: {
@@ -4063,6 +4456,20 @@ const App = () => {
         [n]: t
       }
     })),
+    setReview: (n, review) => setState(s => {
+      const completed = {
+        ...(s.completed || {})
+      };
+      if (n === 1 && review.status === 'rejected') completed[1] = false;
+      return {
+        ...s,
+        reviews: {
+          ...(s.reviews || {}),
+          [n]: review
+        },
+        completed
+      };
+    }),
     setPhoto: async (n, file) => {
       try {
         const url = await downscaleImage(file);
@@ -4071,10 +4478,57 @@ const App = () => {
           photos: {
             ...(s.photos || {}),
             [n]: url
-          }
+          },
+          ...(n === 1 ? {
+            completed: {
+              ...(s.completed || {}),
+              1: false
+            }
+          } : {})
         }));
       } catch (e) {}
-      uploadToSupabase(file, `dia-${n}`).catch(() => {});
+      if (n === 1) {
+        setState(s => ({
+          ...s,
+          uploading: {
+            ...(s.uploading || {}),
+            1: true
+          }
+        }));
+        try {
+          const path = await uploadToSupabase(file, `dia-${n}`);
+          const sub = await createSubmission(1, path);
+          setState(s => ({
+            ...s,
+            uploading: {
+              ...(s.uploading || {}),
+              1: false
+            },
+            reviews: {
+              ...(s.reviews || {}),
+              1: {
+                id: sub.id,
+                status: 'pending',
+                path
+              }
+            },
+            completed: {
+              ...(s.completed || {}),
+              1: false
+            }
+          }));
+        } catch (e) {
+          setState(s => ({
+            ...s,
+            uploading: {
+              ...(s.uploading || {}),
+              1: false
+            }
+          }));
+        }
+      } else {
+        uploadToSupabase(file, `dia-${n}`).catch(() => {});
+      }
     },
     setBest: (n, val) => setState(s => {
       const sc = {
@@ -4155,6 +4609,8 @@ const App = () => {
     preview: previewAll
   });else if (view === 'code') content = /*#__PURE__*/React.createElement(ScreenCodeFinal, {
     api: api,
+    onBack: () => setView('home')
+  });else if (view === 'admin') content = /*#__PURE__*/React.createElement(ScreenAdmin, {
     onBack: () => setView('home')
   });else if (view === 'day') {
     const back = () => setView('home');
