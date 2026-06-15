@@ -177,6 +177,33 @@ const downscaleImage = (file, max = 900, q = 0.72) => new Promise((res, rej) => 
 });
 
 // ════════════════════════════════════════════════════════════
+// SUPABASE — subida de fotos/vídeos a la nube (para que tú los veas)
+// La publishable key es pública por diseño; la seguridad está en las políticas.
+// ════════════════════════════════════════════════════════════
+const SUPA_URL = 'https://dcpxvifjbuyjqtjonsfa.supabase.co';
+const SUPA_KEY = 'sb_publishable_L58ppXvRf7jO39F60zt9Iw_gGArzlWW';
+const SUPA_BUCKET = 'pruebas';
+const slug = s => String(s || 'subida').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 40) || 'subida';
+const uploadToSupabase = async (file, folder = 'subidas') => {
+  const ext = file.type && file.type.split('/')[1] || String(file.name || '').split('.').pop() || 'bin';
+  const path = `${slug(folder)}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
+  const res = await fetch(`${SUPA_URL}/storage/v1/object/${SUPA_BUCKET}/${path}`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPA_KEY,
+      Authorization: `Bearer ${SUPA_KEY}`,
+      'Content-Type': file.type || 'application/octet-stream',
+      'x-upsert': 'true'
+    },
+    body: file
+  });
+  if (!res.ok) {
+    throw new Error('Supabase ' + res.status);
+  }
+  return path;
+};
+
+// ════════════════════════════════════════════════════════════
 // COMPONENTES BASE
 // ════════════════════════════════════════════════════════════
 
@@ -420,41 +447,40 @@ const UploadZone = ({
   }, hint))));
 };
 
-// adjuntar foto/vídeo como prueba y enviarla por el menú nativo (WhatsApp, etc.)
+// adjuntar foto/vídeo como prueba y subirla a la nube (Supabase) para que tú la veas
 const ProofShare = ({
   title = 'Prueba',
-  text = 'Aquí está mi prueba 💪',
   accent = B
 }) => {
   const inputRef = useRef();
   const [file, setFile] = useState(null);
   const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
   const txt = accent === Y ? D : 'white';
   const pick = e => {
     const f = e.target.files && e.target.files[0];
     if (f) {
       setFile(f);
       setNote('');
+      setDone(false);
     }
     e.target.value = '';
   };
   const send = async e => {
     e.stopPropagation();
-    if (!file) return;
-    if (navigator.canShare && navigator.canShare({
-      files: [file]
-    })) {
-      try {
-        await navigator.share({
-          files: [file],
-          title,
-          text
-        });
-      } catch (err) {
-        if (err && err.name !== 'AbortError') setNote('No se pudo compartir. Inténtalo otra vez.');
-      }
-    } else {
-      setNote('Tu dispositivo no permite compartir directamente; guarda el vídeo y envíalo por WhatsApp manualmente.');
+    if (!file || busy) return;
+    setBusy(true);
+    setNote('Enviando…');
+    try {
+      await uploadToSupabase(file, title);
+      setDone(true);
+      setFile(null);
+      setNote('');
+    } catch (err) {
+      setNote('No se pudo enviar. Revisa la conexión e inténtalo otra vez.');
+    } finally {
+      setBusy(false);
     }
   };
   return /*#__PURE__*/React.createElement("div", {
@@ -479,7 +505,7 @@ const ProofShare = ({
     },
     onChange: pick
   }), /*#__PURE__*/React.createElement("div", {
-    onClick: () => inputRef.current && inputRef.current.click(),
+    onClick: () => !busy && inputRef.current && inputRef.current.click(),
     style: {
       display: 'flex',
       alignItems: 'center',
@@ -499,7 +525,7 @@ const ProofShare = ({
       fontSize: 15,
       flexShrink: 0
     }
-  }, file ? '✅' : '🎥'), /*#__PURE__*/React.createElement("div", {
+  }, done ? '💛' : file ? '✅' : '🎥'), /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1,
       minWidth: 0
@@ -511,7 +537,7 @@ const ProofShare = ({
       fontWeight: 600,
       color: D
     }
-  }, file ? 'Prueba lista' : 'Adjuntar prueba'), /*#__PURE__*/React.createElement("div", {
+  }, done ? '¡Prueba enviada!' : file ? 'Prueba lista' : 'Adjuntar prueba'), /*#__PURE__*/React.createElement("div", {
     style: {
       ...mn,
       fontSize: 10,
@@ -520,8 +546,9 @@ const ProofShare = ({
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap'
     }
-  }, file ? file.name : 'foto o vídeo'))), file && /*#__PURE__*/React.createElement("button", {
+  }, done ? 'ya se ha guardado ✓' : file ? file.name : 'foto o vídeo'))), file && /*#__PURE__*/React.createElement("button", {
     onClick: send,
+    disabled: busy,
     style: {
       height: 40,
       borderRadius: 11,
@@ -532,25 +559,18 @@ const ProofShare = ({
       fontSize: 13,
       fontWeight: 600,
       color: txt,
-      cursor: 'pointer',
+      cursor: busy ? 'default' : 'pointer',
+      opacity: busy ? 0.6 : 1,
       WebkitTapHighlightColor: 'transparent'
     }
-  }, "Enviar prueba"), note && /*#__PURE__*/React.createElement("div", {
+  }, busy ? 'Enviando…' : 'Enviar prueba'), note && /*#__PURE__*/React.createElement("div", {
     style: {
       ...mn,
       fontSize: 10,
       color: G,
       lineHeight: 1.5
     }
-  }, note, " ", /*#__PURE__*/React.createElement("a", {
-    href: `https://wa.me/?text=${encodeURIComponent(text)}`,
-    target: "_blank",
-    rel: "noreferrer",
-    style: {
-      color: B,
-      fontWeight: 600
-    }
-  }, "Abrir WhatsApp")));
+  }, note));
 };
 
 // ════════════════════════════════════════════════════════════
@@ -4030,6 +4050,7 @@ const App = () => {
           }
         }));
       } catch (e) {}
+      uploadToSupabase(file, `dia-${n}`).catch(() => {});
     },
     setBest: (n, val) => setState(s => {
       const sc = {
