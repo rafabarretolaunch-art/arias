@@ -1544,7 +1544,7 @@ const ScreenOnboard = ({
     marginTop: 12,
     flexShrink: 0
   }
-}, [0, 1, 2, 3].map(i => /*#__PURE__*/React.createElement("div", {
+}, [0, 1, 2, 3, 4].map(i => /*#__PURE__*/React.createElement("div", {
   key: i,
   style: {
     height: 4,
@@ -1571,6 +1571,206 @@ const ScreenOnboard = ({
     flexShrink: 0
   }
 }, "te quiero \uD83D\uDC9B"))));
+
+// ════════════════════════════════════════════════════════════
+// ONBOARDING — Historia (pantallas de bienvenida con foto + relato)
+// ════════════════════════════════════════════════════════════
+const ScreenOnboardStory = ({
+  photo,
+  photoPos = 'center top',
+  chapter,
+  accent = B,
+  title,
+  body,
+  sign,
+  dotIndex,
+  dotCount,
+  onNext,
+  onBack
+}) => /*#__PURE__*/React.createElement(Screen, {
+  bg: W
+}, /*#__PURE__*/React.createElement("div", {
+  style: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'auto'
+  }
+}, /*#__PURE__*/React.createElement("div", {
+  style: {
+    position: 'relative',
+    height: 270,
+    flexShrink: 0
+  }
+}, /*#__PURE__*/React.createElement("img", {
+  src: photo,
+  style: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    objectPosition: photoPos
+  }
+}), /*#__PURE__*/React.createElement("div", {
+  style: {
+    position: 'absolute',
+    inset: 0,
+    background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, transparent 30%, rgba(250,249,246,0.99) 100%)'
+  }
+}), onBack && /*#__PURE__*/React.createElement("button", {
+  onClick: onBack,
+  style: {
+    position: 'absolute',
+    top: 'calc(12px + env(safe-area-inset-top))',
+    left: 16,
+    width: 36,
+    height: 36,
+    borderRadius: '50%',
+    background: 'rgba(255,255,255,0.85)',
+    border: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...mn,
+    fontSize: 17,
+    color: D,
+    cursor: 'pointer',
+    backdropFilter: 'blur(4px)'
+  }
+}, "\u2190"), /*#__PURE__*/React.createElement("div", {
+  style: {
+    position: 'absolute',
+    top: 'calc(14px + env(safe-area-inset-top))',
+    right: 16,
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 6,
+    background: 'rgba(255,255,255,0.85)',
+    borderRadius: 99,
+    padding: '5px 12px',
+    backdropFilter: 'blur(4px)'
+  }
+}, /*#__PURE__*/React.createElement("div", {
+  style: {
+    width: 7,
+    height: 7,
+    borderRadius: '50%',
+    background: accent
+  }
+}), /*#__PURE__*/React.createElement("span", {
+  style: {
+    ...mn,
+    fontSize: 10,
+    fontWeight: 700,
+    color: accent,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase'
+  }
+}, chapter))), /*#__PURE__*/React.createElement("div", {
+  style: {
+    padding: '0 24px 24px',
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    marginTop: -8
+  }
+}, /*#__PURE__*/React.createElement("div", {
+  style: {
+    ...mn,
+    fontSize: 25,
+    fontWeight: 700,
+    color: D,
+    lineHeight: 1.15,
+    flexShrink: 0
+  }
+}, title), /*#__PURE__*/React.createElement("div", {
+  style: {
+    marginTop: 12,
+    background: 'white',
+    borderRadius: 14,
+    padding: '14px 16px',
+    border: `1.5px dashed ${L}`,
+    flexShrink: 0,
+    ...sk,
+    fontSize: 17,
+    color: '#555',
+    lineHeight: 1.6
+  }
+}, body), sign && /*#__PURE__*/React.createElement("div", {
+  style: {
+    ...sk,
+    fontSize: 16,
+    color: accent,
+    marginTop: 10,
+    flexShrink: 0
+  }
+}, sign), /*#__PURE__*/React.createElement("div", {
+  style: {
+    display: 'flex',
+    gap: 6,
+    marginTop: 12,
+    flexShrink: 0
+  }
+}, Array.from({
+  length: dotCount
+}).map((_, i) => /*#__PURE__*/React.createElement("div", {
+  key: i,
+  style: {
+    height: 4,
+    width: i === dotIndex ? 22 : 8,
+    borderRadius: 2,
+    background: i === dotIndex ? accent : L
+  }
+}))), /*#__PURE__*/React.createElement("div", {
+  style: {
+    flex: 1,
+    minHeight: 14
+  }
+}), /*#__PURE__*/React.createElement(Btn, {
+  label: "Seguir \u2192",
+  bg: accent,
+  color: accent === Y ? D : 'white',
+  onClick: onNext
+}))));
+const ScreenOnboardStory1 = ({
+  onNext,
+  onBack
+}) => /*#__PURE__*/React.createElement(ScreenOnboardStory, {
+  photo: P.onboardTog1,
+  photoPos: "center top",
+  chapter: "cap\xEDtulo uno",
+  accent: R,
+  title: /*#__PURE__*/React.createElement(React.Fragment, null, "Todo empez\xF3", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: R
+    }
+  }, "con un s\xED.")),
+  body: /*#__PURE__*/React.createElement(React.Fragment, null, "\"Desde el primer d\xEDa supe que contigo", /*#__PURE__*/React.createElement("br", null), "cada momento se volv\xEDa una aventura.", /*#__PURE__*/React.createElement("br", null), "Y todav\xEDa me quedan muchas", /*#__PURE__*/React.createElement("br", null), "por vivir a tu lado.\""),
+  sign: "\u2014 y aqu\xED seguimos \uD83D\uDC9B",
+  dotIndex: 1,
+  dotCount: 5,
+  onNext: onNext,
+  onBack: onBack
+});
+const ScreenOnboardStory2 = ({
+  onNext,
+  onBack
+}) => /*#__PURE__*/React.createElement(ScreenOnboardStory, {
+  photo: "photos/couple7.jpg",
+  photoPos: "center top",
+  chapter: "cap\xEDtulo dos",
+  accent: B,
+  title: /*#__PURE__*/React.createElement(React.Fragment, null, "Mira todo lo que", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: B
+    }
+  }, "llevamos vivido.")),
+  body: /*#__PURE__*/React.createElement(React.Fragment, null, "\"Viajes, risas, fotos, sitios nuevos", /*#__PURE__*/React.createElement("br", null), "y mil planes a medias.", /*#__PURE__*/React.createElement("br", null), "Esto es solo un repaso", /*#__PURE__*/React.createElement("br", null), "de lo nuestro\u2026 y de lo que viene.\""),
+  sign: "\u2014 pasa la p\xE1gina \u2726",
+  dotIndex: 2,
+  dotCount: 5,
+  onNext: onNext,
+  onBack: onBack
+});
 
 // ════════════════════════════════════════════════════════════
 // ONBOARDING 2 — Pequeños recuerdos
@@ -1681,13 +1881,13 @@ const ScreenOnboardMemories = ({
       marginTop: 14,
       flexShrink: 0
     }
-  }, [0, 1, 2, 3].map(i => /*#__PURE__*/React.createElement("div", {
+  }, [0, 1, 2, 3, 4].map(i => /*#__PURE__*/React.createElement("div", {
     key: i,
     style: {
       height: 4,
-      width: i === 1 ? 22 : 8,
+      width: i === 3 ? 22 : 8,
       borderRadius: 2,
-      background: i === 1 ? B : '#D9D5CC'
+      background: i === 3 ? B : '#D9D5CC'
     }
   }))), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1878,13 +2078,13 @@ const ScreenOnboardTogether = ({
       marginTop: 12,
       flexShrink: 0
     }
-  }, [0, 1, 2, 3].map(i => /*#__PURE__*/React.createElement("div", {
+  }, [0, 1, 2, 3, 4].map(i => /*#__PURE__*/React.createElement("div", {
     key: i,
     style: {
       height: 4,
-      width: i === 2 ? 22 : 8,
+      width: i === 4 ? 22 : 8,
       borderRadius: 2,
-      background: i === 2 ? B : L
+      background: i === 4 ? B : L
     }
   }))), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3874,7 +4074,13 @@ const App = () => {
   // render
   let content;
   if (view === 'splash') content = /*#__PURE__*/React.createElement(ScreenSplash, null);else if (view === 'onboard0') content = /*#__PURE__*/React.createElement(ScreenOnboard, {
-    onNext: () => setView('onboard1')
+    onNext: () => setView('story1')
+  });else if (view === 'story1') content = /*#__PURE__*/React.createElement(ScreenOnboardStory1, {
+    onNext: () => setView('story2'),
+    onBack: () => setView('onboard0')
+  });else if (view === 'story2') content = /*#__PURE__*/React.createElement(ScreenOnboardStory2, {
+    onNext: () => setView('onboard1'),
+    onBack: () => setView('story1')
   });else if (view === 'onboard1') content = /*#__PURE__*/React.createElement(ScreenOnboardMemories, {
     onNext: () => setView('onboard2')
   });else if (view === 'onboard2') content = /*#__PURE__*/React.createElement(ScreenOnboardTogether, {

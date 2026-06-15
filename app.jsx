@@ -642,7 +642,7 @@ const ScreenOnboard = ({ onNext }) => (
           "Sorpresas, retos y momentos<br/>diseñados solo para ti.<br/>¿Lista para empezar? 🔒"
         </div>
         <div style={{ display:'flex', gap:6, marginTop:12, flexShrink:0 }}>
-          {[0,1,2,3].map(i=><div key={i} style={{ height:4, width:i===0?22:8, borderRadius:2, background:i===0?B:L }}/>)}
+          {[0,1,2,3,4].map(i=><div key={i} style={{ height:4, width:i===0?22:8, borderRadius:2, background:i===0?B:L }}/>)}
         </div>
         <div style={{ flex:1, minHeight:16 }}/>
         <Btn label="Empezar →" bg={B} onClick={onNext}/>
@@ -650,6 +650,55 @@ const ScreenOnboard = ({ onNext }) => (
       </div>
     </div>
   </Screen>
+);
+
+// ════════════════════════════════════════════════════════════
+// ONBOARDING — Historia (pantallas de bienvenida con foto + relato)
+// ════════════════════════════════════════════════════════════
+const ScreenOnboardStory = ({ photo, photoPos='center top', chapter, accent=B, title, body, sign, dotIndex, dotCount, onNext, onBack }) => (
+  <Screen bg={W}>
+    <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'auto' }}>
+      <div style={{ position:'relative', height:270, flexShrink:0 }}>
+        <img src={photo} style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:photoPos }}/>
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, transparent 30%, rgba(250,249,246,0.99) 100%)' }}/>
+        {onBack && (
+          <button onClick={onBack} style={{ position:'absolute', top:'calc(12px + env(safe-area-inset-top))', left:16, width:36, height:36, borderRadius:'50%', background:'rgba(255,255,255,0.85)', border:'none', display:'flex', alignItems:'center', justifyContent:'center', ...mn, fontSize:17, color:D, cursor:'pointer', backdropFilter:'blur(4px)' }}>←</button>
+        )}
+        <div style={{ position:'absolute', top:'calc(14px + env(safe-area-inset-top))', right:16, display:'inline-flex', alignItems:'center', gap:6, background:'rgba(255,255,255,0.85)', borderRadius:99, padding:'5px 12px', backdropFilter:'blur(4px)' }}>
+          <div style={{ width:7, height:7, borderRadius:'50%', background:accent }}/>
+          <span style={{...mn, fontSize:10, fontWeight:700, color:accent, letterSpacing:1.5, textTransform:'uppercase'}}>{chapter}</span>
+        </div>
+      </div>
+      <div style={{ padding:'0 24px 24px', flex:1, display:'flex', flexDirection:'column', marginTop:-8 }}>
+        <div style={{...mn, fontSize:25, fontWeight:700, color:D, lineHeight:1.15, flexShrink:0}}>{title}</div>
+        <div style={{ marginTop:12, background:'white', borderRadius:14, padding:'14px 16px', border:`1.5px dashed ${L}`, flexShrink:0, ...sk, fontSize:17, color:'#555', lineHeight:1.6 }}>{body}</div>
+        {sign && <div style={{...sk, fontSize:16, color:accent, marginTop:10, flexShrink:0}}>{sign}</div>}
+        <div style={{ display:'flex', gap:6, marginTop:12, flexShrink:0 }}>
+          {Array.from({length:dotCount}).map((_,i)=><div key={i} style={{ height:4, width:i===dotIndex?22:8, borderRadius:2, background:i===dotIndex?accent:L }}/>)}
+        </div>
+        <div style={{ flex:1, minHeight:14 }}/>
+        <Btn label="Seguir →" bg={accent} color={accent===Y?D:'white'} onClick={onNext}/>
+      </div>
+    </div>
+  </Screen>
+);
+
+const ScreenOnboardStory1 = ({ onNext, onBack }) => (
+  <ScreenOnboardStory
+    photo={P.onboardTog1} photoPos="center top" chapter="capítulo uno" accent={R}
+    title={<>Todo empezó<br/><span style={{color:R}}>con un sí.</span></>}
+    body={<>"Desde el primer día supe que contigo<br/>cada momento se volvía una aventura.<br/>Y todavía me quedan muchas<br/>por vivir a tu lado."</>}
+    sign="— y aquí seguimos 💛"
+    dotIndex={1} dotCount={5} onNext={onNext} onBack={onBack}/>
+);
+
+const ScreenOnboardStory2 = ({ onNext, onBack }) => (
+  <ScreenOnboardStory
+    photo="photos/couple7.jpg" photoPos="center top" chapter="capítulo dos" accent={B}
+    title={<>Mira todo lo que<br/><span style={{color:B}}>llevamos vivido.</span></>}
+    body={<>"Viajes, risas, fotos, sitios nuevos<br/>y mil planes a medias.<br/>Esto es solo un repaso<br/>de lo nuestro… y de lo que viene."</>}
+    sign="— pasa la página ✦"
+    dotIndex={2} dotCount={5} onNext={onNext} onBack={onBack}/>
 );
 
 // ════════════════════════════════════════════════════════════
@@ -677,7 +726,7 @@ const ScreenOnboardMemories = ({ onNext }) => {
           ))}
         </div>
         <div style={{ display:'flex', gap:6, marginTop:14, flexShrink:0 }}>
-          {[0,1,2,3].map(i=><div key={i} style={{ height:4, width:i===1?22:8, borderRadius:2, background:i===1?B:'#D9D5CC' }}/>)}
+          {[0,1,2,3,4].map(i=><div key={i} style={{ height:4, width:i===3?22:8, borderRadius:2, background:i===3?B:'#D9D5CC' }}/>)}
         </div>
         <div style={{ flex:1, minHeight:16 }}/>
         <Btn label="Siguiente →" bg='#0E1A40' onClick={onNext}/>
@@ -724,7 +773,7 @@ const ScreenOnboardTogether = ({ onNext }) => {
           ))}
         </div>
         <div style={{ display:'flex', gap:6, marginTop:12, flexShrink:0 }}>
-          {[0,1,2,3].map(i=><div key={i} style={{ height:4, width:i===2?22:8, borderRadius:2, background:i===2?B:L }}/>)}
+          {[0,1,2,3,4].map(i=><div key={i} style={{ height:4, width:i===4?22:8, borderRadius:2, background:i===4?B:L }}/>)}
         </div>
         <div style={{ height:14, flexShrink:0 }}/>
         <Btn label="Siguiente →" bg={B} onClick={onNext}/>
@@ -1352,7 +1401,9 @@ const App = () => {
   // render
   let content;
   if(view==='splash') content = <ScreenSplash/>;
-  else if(view==='onboard0') content = <ScreenOnboard onNext={()=>setView('onboard1')}/>;
+  else if(view==='onboard0') content = <ScreenOnboard onNext={()=>setView('story1')}/>;
+  else if(view==='story1') content = <ScreenOnboardStory1 onNext={()=>setView('story2')} onBack={()=>setView('onboard0')}/>;
+  else if(view==='story2') content = <ScreenOnboardStory2 onNext={()=>setView('onboard1')} onBack={()=>setView('story1')}/>;
   else if(view==='onboard1') content = <ScreenOnboardMemories onNext={()=>setView('onboard2')}/>;
   else if(view==='onboard2') content = <ScreenOnboardTogether onNext={()=>setView('reveal')}/>;
   else if(view==='reveal') content = <ScreenMisionReveal onStart={startMission} onBack={state.onboardingDone ? ()=>setView('home') : undefined} started={!!state.onboardingDone}/>;
