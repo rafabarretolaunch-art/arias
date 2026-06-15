@@ -56,7 +56,7 @@ const P = {
 const KEY = 'ari.state.v1';
 const DAY_MS = 86400000;
 // Desbloquea los 7 días para editar/mejorar. Pon false antes de entregar.
-const DEV_UNLOCK_ALL = true;
+const DEV_UNLOCK_ALL = false;
 const loadState = () => {
   try {
     return JSON.parse(localStorage.getItem(KEY)) || {};
@@ -75,11 +75,18 @@ const startOfDay = d => {
   return x;
 };
 
-// día actual según fecha de inicio (1..7)
+// día actual según cuándo pulsó "Desbloquear" (1..7); 0 = misión aún no empezada
 const computeCurrentDay = startISO => {
-  if (!startISO) return 1;
-  const diff = Math.floor((startOfDay(new Date()) - startOfDay(new Date(startISO))) / DAY_MS);
+  if (!startISO) return 0;
+  const diff = Math.floor((Date.now() - new Date(startISO).getTime()) / DAY_MS);
   return Math.max(1, Math.min(7, diff + 1));
+};
+
+// ms hasta que se abra el siguiente día (24 h desde el desbloqueo, no medianoche)
+const msToNextAdventure = (startISO, currentDay) => {
+  if (!startISO || currentDay < 1 || currentDay >= 7) return 0;
+  const start = new Date(startISO).getTime();
+  return Math.max(0, start + currentDay * DAY_MS - Date.now());
 };
 
 // ms hasta la próxima medianoche local
@@ -2142,7 +2149,7 @@ const ScreenMisionReveal = ({
     boxShadow: `0 4px 24px ${Y}44`,
     cursor: 'pointer'
   }
-}, /*#__PURE__*/React.createElement("span", null, started ? 'Volver al camino' : 'Abrir mi misión'), /*#__PURE__*/React.createElement("span", {
+}, /*#__PURE__*/React.createElement("span", null, started ? 'Volver al camino' : 'Ver mi camino'), /*#__PURE__*/React.createElement("span", {
   style: {
     fontSize: 18
   }
@@ -2195,6 +2202,7 @@ const ScreenHome = ({
   onOpenDay,
   onOpenCode,
   onOpenTortuga,
+  onUnlock,
   preview = false
 }) => {
   const [now, setNow] = useState(Date.now());
@@ -2202,6 +2210,7 @@ const ScreenHome = ({
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+  const missionStarted = !!state.startDate;
   const layout = [{
     x: 64,
     y: 30
@@ -2225,8 +2234,9 @@ const ScreenHome = ({
     y: 404
   }];
   const statusOf = n => {
+    if (!missionStarted && !preview) return 'locked';
     if (state.completed && state.completed[n]) return 'done';
-    if (n < currentDay) return 'past'; // desbloqueado, no completado
+    if (n < currentDay) return 'past';
     if (n === currentDay) return 'today';
     return 'locked';
   };
@@ -2240,9 +2250,9 @@ const ScreenHome = ({
     return `C${mx} ${p.y} ${mx} ${n.y} ${n.x} ${n.y}`;
   };
   const full = nodes.map((d, i) => i === 0 ? `M${d.x} ${d.y}` : curve(nodes[i - 1], d)).join(' ');
-  const reached = nodes.slice(0, currentDay).map((d, i) => i === 0 ? `M${d.x} ${d.y}` : curve(nodes[i - 1], d)).join(' ');
-  const todayDay = DAYS[currentDay - 1];
-  const allDone = currentDay >= 7 && state.completed && state.completed[7];
+  const reached = missionStarted ? nodes.slice(0, currentDay).map((d, i) => i === 0 ? `M${d.x} ${d.y}` : curve(nodes[i - 1], d)).join(' ') : '';
+  const todayDay = currentDay >= 1 ? DAYS[currentDay - 1] : DAYS[0];
+  const allDone = missionStarted && currentDay >= 7 && state.completed && state.completed[7];
   return /*#__PURE__*/React.createElement(Screen, {
     bg: W
   }, /*#__PURE__*/React.createElement("div", {
@@ -2263,7 +2273,7 @@ const ScreenHome = ({
       fontWeight: 700,
       color: D
     }
-  }, "ari"), /*#__PURE__*/React.createElement(Badge, null, "d\xEDa ", currentDay, " / 7")), onOpenTortuga && /*#__PURE__*/React.createElement("button", {
+  }, "ari"), /*#__PURE__*/React.createElement(Badge, null, missionStarted ? `día ${currentDay} / 7` : '🔒 sin empezar')), onOpenTortuga && /*#__PURE__*/React.createElement("button", {
     onClick: onOpenTortuga,
     style: {
       marginTop: 6,
@@ -2390,7 +2400,28 @@ const ScreenHome = ({
       padding: '0 24px 8px',
       flexShrink: 0
     }
-  }, currentDay < 7 && /*#__PURE__*/React.createElement("div", {
+  }, !missionStarted && !preview ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'white',
+      borderRadius: 16,
+      padding: '16px 18px',
+      border: `1.5px dashed ${L}`,
+      marginBottom: 12,
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...sk,
+      fontSize: 15,
+      color: G,
+      lineHeight: 1.7
+    }
+  }, "Cuando est\xE9s lista, desbloquea tu misi\xF3n.", /*#__PURE__*/React.createElement("br", null), "A partir de ah\xED, cada ", /*#__PURE__*/React.createElement("strong", null, "24 h"), " se abrir\xE1 un nuevo d\xEDa.")), /*#__PURE__*/React.createElement(Btn, {
+    label: "Desbloquear misi\xF3n \u2726",
+    bg: Y,
+    color: D,
+    onClick: onUnlock
+  })) : /*#__PURE__*/React.createElement(React.Fragment, null, missionStarted && currentDay < 7 && /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'space-between',
@@ -2407,7 +2438,7 @@ const ScreenHome = ({
       fontWeight: 700,
       color: R
     }
-  }, fmtCountdown(msToMidnight()))), /*#__PURE__*/React.createElement("div", {
+  }, fmtCountdown(msToNextAdventure(state.startDate, currentDay)))), /*#__PURE__*/React.createElement("div", {
     onClick: allDone ? onOpenCode : () => onOpenDay(currentDay),
     style: {
       background: D,
@@ -2475,7 +2506,7 @@ const ScreenHome = ({
       color: Y,
       position: 'relative'
     }
-  }, "\u2192"))));
+  }, "\u2192")))));
 };
 
 // botón fijo inferior para marcar completado
@@ -3822,12 +3853,18 @@ const App = () => {
   const startMission = () => {
     setState(s => ({
       ...s,
-      onboardingDone: true,
-      startDate: s.startDate || new Date().toISOString()
+      onboardingDone: true
     }));
     setView('home');
   };
+  const unlockMission = () => {
+    setState(s => s.startDate ? s : {
+      ...s,
+      startDate: new Date().toISOString()
+    });
+  };
   const openDay = n => {
+    if (!state.startDate && !previewAll) return;
     if (n >= 1 && n <= 7 && (previewAll || n <= currentDay)) {
       setDay(n);
       setView('day');
@@ -3852,6 +3889,7 @@ const App = () => {
     onOpenDay: openDay,
     onOpenCode: () => setView('code'),
     onOpenTortuga: () => setView('reveal'),
+    onUnlock: unlockMission,
     preview: previewAll
   });else if (view === 'code') content = /*#__PURE__*/React.createElement(ScreenCodeFinal, {
     api: api,

@@ -28,7 +28,7 @@ const P = {
 const KEY = 'ari.state.v1';
 const DAY_MS = 86400000;
 // Desbloquea los 7 días para editar/mejorar. Pon false antes de entregar.
-const DEV_UNLOCK_ALL = true;
+const DEV_UNLOCK_ALL = false;
 
 const loadState = () => {
   try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; }
@@ -37,11 +37,18 @@ const saveState = (s) => { try { localStorage.setItem(KEY, JSON.stringify(s)); }
 
 const startOfDay = (d) => { const x=new Date(d); x.setHours(0,0,0,0); return x; };
 
-// día actual según fecha de inicio (1..7)
+// día actual según cuándo pulsó "Desbloquear" (1..7); 0 = misión aún no empezada
 const computeCurrentDay = (startISO) => {
-  if(!startISO) return 1;
-  const diff = Math.floor((startOfDay(new Date()) - startOfDay(new Date(startISO))) / DAY_MS);
+  if(!startISO) return 0;
+  const diff = Math.floor((Date.now() - new Date(startISO).getTime()) / DAY_MS);
   return Math.max(1, Math.min(7, diff + 1));
+};
+
+// ms hasta que se abra el siguiente día (24 h desde el desbloqueo, no medianoche)
+const msToNextAdventure = (startISO, currentDay) => {
+  if(!startISO || currentDay < 1 || currentDay >= 7) return 0;
+  const start = new Date(startISO).getTime();
+  return Math.max(0, start + currentDay * DAY_MS - Date.now());
 };
 
 // ms hasta la próxima medianoche local
@@ -777,7 +784,7 @@ const ScreenMisionReveal = ({ onStart, onBack, started=false }) => (
       <div style={{ flex:1, minHeight:18 }}/>
       <div style={{ position:'relative', flexShrink:0 }}>
         <button onClick={started ? onBack : onStart} style={{ width:'100%', height:54, borderRadius:16, background:Y, border:'none', display:'flex', alignItems:'center', justifyContent:'center', gap:10, ...mn, fontSize:16, fontWeight:700, color:D, boxShadow:`0 4px 24px ${Y}44`, cursor:'pointer' }}>
-          <span>{started ? 'Volver al camino' : 'Abrir mi misión'}</span><span style={{ fontSize:18 }}>✦</span>
+          <span>{started ? 'Volver al camino' : 'Ver mi camino'}</span><span style={{ fontSize:18 }}>✦</span>
         </button>
       </div>
     </div>
@@ -798,33 +805,37 @@ const DAYS = [
 // ════════════════════════════════════════════════════════════
 // HOME — El Camino (gating por fecha + cuenta atrás)
 // ════════════════════════════════════════════════════════════
-const ScreenHome = ({ state, currentDay, onOpenDay, onOpenCode, onOpenTortuga, preview=false }) => {
+const ScreenHome = ({ state, currentDay, onOpenDay, onOpenCode, onOpenTortuga, onUnlock, preview=false }) => {
   const [now, setNow] = useState(Date.now());
   useEffect(()=>{ const id=setInterval(()=>setNow(Date.now()),1000); return ()=>clearInterval(id); },[]);
 
+  const missionStarted = !!state.startDate;
   const layout = [
     { x:64,  y:30  },{ x:240, y:88  },{ x:72,  y:150 },{ x:248, y:212 },
     { x:64,  y:276 },{ x:240, y:338 },{ x:152, y:404 },
   ];
   const statusOf = (n) => {
+    if(!missionStarted && !preview) return 'locked';
     if(state.completed && state.completed[n]) return 'done';
-    if(n < currentDay) return 'past';      // desbloqueado, no completado
+    if(n < currentDay) return 'past';
     if(n === currentDay) return 'today';
     return 'locked';
   };
   const nodes = DAYS.map((d,i)=>({ ...d, ...layout[i], st:statusOf(d.n) }));
   const curve=(p,n)=>{ const mx=(p.x+n.x)/2; return `C${mx} ${p.y} ${mx} ${n.y} ${n.x} ${n.y}`; };
   const full = nodes.map((d,i)=>i===0?`M${d.x} ${d.y}`:curve(nodes[i-1],d)).join(' ');
-  const reached = nodes.slice(0, currentDay).map((d,i)=>i===0?`M${d.x} ${d.y}`:curve(nodes[i-1],d)).join(' ');
-  const todayDay = DAYS[currentDay-1];
-  const allDone = currentDay>=7 && state.completed && state.completed[7];
+  const reached = missionStarted
+    ? nodes.slice(0, currentDay).map((d,i)=>i===0?`M${d.x} ${d.y}`:curve(nodes[i-1],d)).join(' ')
+    : '';
+  const todayDay = currentDay >= 1 ? DAYS[currentDay-1] : DAYS[0];
+  const allDone = missionStarted && currentDay>=7 && state.completed && state.completed[7];
 
   return (
     <Screen bg={W}>
       <div style={{ padding:'calc(10px + env(safe-area-inset-top)) 24px 4px', flexShrink:0 }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div style={{...mn, fontSize:26, fontWeight:700, color:D}}>ari</div>
-          <Badge>día {currentDay} / 7</Badge>
+          <Badge>{missionStarted ? `día ${currentDay} / 7` : '🔒 sin empezar'}</Badge>
         </div>
         {onOpenTortuga && (
           <button onClick={onOpenTortuga} style={{ marginTop:6, background:'none', border:'none', padding:0, display:'flex', alignItems:'center', gap:6, ...mn, fontSize:12, color:B, cursor:'pointer' }}>
@@ -861,23 +872,37 @@ const ScreenHome = ({ state, currentDay, onOpenDay, onOpenCode, onOpenTortuga, p
       </div>
 
       <div style={{ padding:'0 24px 8px', flexShrink:0 }}>
-        {currentDay < 7 && (
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'0 4px 8px', ...sk, fontSize:15, color:G }}>
-            <span>próxima aventura en</span>
-            <span style={{...mn, fontSize:15, fontWeight:700, color:R}}>{fmtCountdown(msToMidnight())}</span>
-          </div>
+        {!missionStarted && !preview ? (
+          <>
+            <div style={{ background:'white', borderRadius:16, padding:'16px 18px', border:`1.5px dashed ${L}`, marginBottom:12, textAlign:'center' }}>
+              <div style={{...sk, fontSize:15, color:G, lineHeight:1.7}}>
+                Cuando estés lista, desbloquea tu misión.<br/>
+                A partir de ahí, cada <strong>24 h</strong> se abrirá un nuevo día.
+              </div>
+            </div>
+            <Btn label="Desbloquear misión ✦" bg={Y} color={D} onClick={onUnlock}/>
+          </>
+        ) : (
+          <>
+            {missionStarted && currentDay < 7 && (
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'0 4px 8px', ...sk, fontSize:15, color:G }}>
+                <span>próxima aventura en</span>
+                <span style={{...mn, fontSize:15, fontWeight:700, color:R}}>{fmtCountdown(msToNextAdventure(state.startDate, currentDay))}</span>
+              </div>
+            )}
+            <div onClick={allDone?onOpenCode:()=>onOpenDay(currentDay)} style={{ background:D, borderRadius:16, padding:'12px 14px', display:'flex', alignItems:'center', gap:12, border:`2px solid ${D}`, boxShadow:'2px 2px 0 0 #000', overflow:'hidden', position:'relative', cursor:'pointer' }}>
+              <img src={allDone?P.sobresDay7:todayDay.photo} style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', opacity:0.18 }}/>
+              <div style={{ width:44, height:44, borderRadius:11, overflow:'hidden', flexShrink:0, border:`2px solid ${Y}`, position:'relative' }}>
+                <img src={allDone?P.sobresDay7:todayDay.photo} style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }}/>
+              </div>
+              <div style={{ flex:1, position:'relative' }}>
+                <div style={{...sk, fontSize:13, color:'rgba(255,255,255,0.45)'}}>{allDone?'COMPLETADO':`HOY · DÍA ${currentDay}`}</div>
+                <div style={{...mn, fontSize:15, fontWeight:600, color:'white'}}>{allDone?'Ver código final 🔐':todayDay.title}</div>
+              </div>
+              <span style={{ fontSize:20, color:Y, position:'relative' }}>→</span>
+            </div>
+          </>
         )}
-        <div onClick={allDone?onOpenCode:()=>onOpenDay(currentDay)} style={{ background:D, borderRadius:16, padding:'12px 14px', display:'flex', alignItems:'center', gap:12, border:`2px solid ${D}`, boxShadow:'2px 2px 0 0 #000', overflow:'hidden', position:'relative', cursor:'pointer' }}>
-          <img src={allDone?P.sobresDay7:todayDay.photo} style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', opacity:0.18 }}/>
-          <div style={{ width:44, height:44, borderRadius:11, overflow:'hidden', flexShrink:0, border:`2px solid ${Y}`, position:'relative' }}>
-            <img src={allDone?P.sobresDay7:todayDay.photo} style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }}/>
-          </div>
-          <div style={{ flex:1, position:'relative' }}>
-            <div style={{...sk, fontSize:13, color:'rgba(255,255,255,0.45)'}}>{allDone?'COMPLETADO':`HOY · DÍA ${currentDay}`}</div>
-            <div style={{...mn, fontSize:15, fontWeight:600, color:'white'}}>{allDone?'Ver código final 🔐':todayDay.title}</div>
-          </div>
-          <span style={{ fontSize:20, color:Y, position:'relative' }}>→</span>
-        </div>
       </div>
     </Screen>
   );
@@ -1311,11 +1336,16 @@ const App = () => {
   }, [allDone, state.finalCode]);
 
   const startMission = () => {
-    setState(s=>({ ...s, onboardingDone:true, startDate: s.startDate || new Date().toISOString() }));
+    setState(s=>({ ...s, onboardingDone:true }));
     setView('home');
   };
 
+  const unlockMission = () => {
+    setState(s => s.startDate ? s : ({ ...s, startDate: new Date().toISOString() }));
+  };
+
   const openDay = (n) => {
+    if(!state.startDate && !previewAll) return;
     if(n>=1 && n<=7 && (previewAll || n<=currentDay)){ setDay(n); setView('day'); }
   };
 
@@ -1326,7 +1356,7 @@ const App = () => {
   else if(view==='onboard1') content = <ScreenOnboardMemories onNext={()=>setView('onboard2')}/>;
   else if(view==='onboard2') content = <ScreenOnboardTogether onNext={()=>setView('reveal')}/>;
   else if(view==='reveal') content = <ScreenMisionReveal onStart={startMission} onBack={state.onboardingDone ? ()=>setView('home') : undefined} started={!!state.onboardingDone}/>;
-  else if(view==='home') content = <ScreenHome state={state} currentDay={currentDay} onOpenDay={openDay} onOpenCode={()=>setView('code')} onOpenTortuga={()=>setView('reveal')} preview={previewAll}/>;
+  else if(view==='home') content = <ScreenHome state={state} currentDay={currentDay} onOpenDay={openDay} onOpenCode={()=>setView('code')} onOpenTortuga={()=>setView('reveal')} onUnlock={unlockMission} preview={previewAll}/>;
   else if(view==='code') content = <ScreenCodeFinal api={api} onBack={()=>setView('home')}/>;
   else if(view==='day'){
     const back = ()=>setView('home');
