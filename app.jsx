@@ -116,7 +116,6 @@ const downscaleImage = (file, max=900, q=0.72) => new Promise((res,rej)=>{
 const SUPA_URL = 'https://dcpxvifjbuyjqtjonsfa.supabase.co';
 const SUPA_KEY = 'sb_publishable_L58ppXvRf7jO39F60zt9Iw_gGArzlWW';
 const SUPA_BUCKET = 'pruebas';
-const ADMIN_PIN = 'rafa2026'; // clave para ?admin=1 — cámbiala si quieres
 
 const slug = (s) => String(s||'subida').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
   .replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,40) || 'subida';
@@ -1454,8 +1453,6 @@ const ScreenCodeFinal = ({ api, onBack }) => {
 // ADMIN — aprobar / rechazar fotos (solo tú, ?admin=1)
 // ════════════════════════════════════════════════════════════
 const ScreenAdmin = ({ onBack }) => {
-  const [pin, setPin] = useState('');
-  const [authed, setAuthed] = useState(false);
   const [items, setItems] = useState([]);
   const [busy, setBusy] = useState('');
   const [err, setErr] = useState('');
@@ -1468,7 +1465,7 @@ const ScreenAdmin = ({ onBack }) => {
     } catch(e) { setErr('No se pudieron cargar las pruebas.'); }
   };
 
-  useEffect(()=>{ if(authed) load(); }, [authed]);
+  useEffect(()=>{ load(); }, []);
 
   const act = async (id, status) => {
     setBusy(id+status);
@@ -1478,19 +1475,6 @@ const ScreenAdmin = ({ onBack }) => {
     } catch(e) { setErr('Error al actualizar.'); }
     finally { setBusy(''); }
   };
-
-  if(!authed) return (
-    <Screen bg={D} dark>
-      <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'calc(24px + env(safe-area-inset-top)) 24px 24px' }}>
-        <button onClick={onBack} style={{ alignSelf:'flex-start', background:'rgba(255,255,255,0.08)', border:'none', borderRadius:12, width:38, height:38, ...mn, fontSize:17, color:'white', cursor:'pointer', marginBottom:24 }}>←</button>
-        <div style={{...mn, fontSize:22, fontWeight:700, color:Y, marginBottom:8}}>Admin</div>
-        <div style={{...mn, fontSize:13, color:'rgba(255,255,255,0.5)', marginBottom:20}}>Introduce tu clave para revisar pruebas.</div>
-        <input type="password" value={pin} onChange={e=>setPin(e.target.value)} placeholder="Clave" style={{ height:48, borderRadius:12, border:'1px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.06)', padding:'0 14px', ...mn, fontSize:16, color:'white', marginBottom:12 }}/>
-        <Btn label="Entrar" bg={Y} color={D} onClick={()=>{ if(pin===ADMIN_PIN) setAuthed(true); else setErr('Clave incorrecta'); }}/>
-        {err && <div style={{...mn, fontSize:12, color:R, marginTop:10}}>{err}</div>}
-      </div>
-    </Screen>
-  );
 
   return (
     <Screen bg={W}>
