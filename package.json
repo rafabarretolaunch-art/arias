@@ -1,0 +1,19 @@
+{
+  "name": "ari-pwa",
+  "version": "1.0.0",
+  "description": "ari — PWA: 7 días, 7 aventuras. App instalable (offline) generada desde la maqueta Hi-Fi.",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/bump-sw.js && babel app.jsx --presets @babel/preset-react -o app.js",
+    "watch": "babel app.jsx --presets @babel/preset-react -o app.js --watch",
+    "serve": "npx --yes serve -l 5050 ."
+  },
+  "keywords": ["pwa", "react", "ari"],
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@babel/cli": "^7.29.7",
+    "@babel/core": "^7.29.7",
+    "@babel/preset-react": "^7.29.7"
+  }
+}
