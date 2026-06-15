@@ -1530,7 +1530,8 @@ const ScreenSplash = () => /*#__PURE__*/React.createElement(Screen, {
 // ONBOARDING 1 — Hola
 // ════════════════════════════════════════════════════════════
 const ScreenOnboard = ({
-  onNext
+  onNext,
+  onBack
 }) => /*#__PURE__*/React.createElement(Screen, {
   bg: W
 }, /*#__PURE__*/React.createElement("div", {
@@ -1560,7 +1561,27 @@ const ScreenOnboard = ({
     inset: 0,
     background: 'linear-gradient(to bottom, transparent 40%, rgba(250,249,246,0.98) 100%)'
   }
-})), /*#__PURE__*/React.createElement("div", {
+}), onBack && /*#__PURE__*/React.createElement("button", {
+  type: "button",
+  onClick: onBack,
+  style: {
+    position: 'absolute',
+    top: 'calc(12px + env(safe-area-inset-top))',
+    left: 16,
+    width: 40,
+    height: 40,
+    borderRadius: '50%',
+    background: 'rgba(255,255,255,0.9)',
+    border: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...mn,
+    fontSize: 18,
+    color: D,
+    cursor: 'pointer'
+  }
+}, "\u2190")), /*#__PURE__*/React.createElement("div", {
   style: {
     padding: '0 24px 24px',
     flex: 1,
@@ -2559,45 +2580,51 @@ const ScreenHome = ({
       fontWeight: 700,
       color: D
     }
-  }, "ari"), /*#__PURE__*/React.createElement("div", {
+  }, "ari"), /*#__PURE__*/React.createElement(Badge, null, missionStarted ? `día ${currentDay} / 7` : '🔒 sin empezar')), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
-      alignItems: 'center',
-      gap: 8
+      gap: 10,
+      marginTop: 10,
+      flexWrap: 'wrap',
+      alignItems: 'center'
     }
-  }, onReplayOnboarding && /*#__PURE__*/React.createElement("button", {
-    onClick: onReplayOnboarding,
-    style: {
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: 4,
-      background: 'white',
-      borderRadius: 99,
-      padding: '5px 10px',
-      border: `1.5px solid ${L}`,
-      ...mn,
-      fontSize: 10,
-      fontWeight: 600,
-      color: G,
-      cursor: 'pointer',
-      WebkitTapHighlightColor: 'transparent'
-    }
-  }, /*#__PURE__*/React.createElement("span", null, "\uD83D\uDC9B"), /*#__PURE__*/React.createElement("span", null, "historia")), /*#__PURE__*/React.createElement(Badge, null, missionStarted ? `día ${currentDay} / 7` : '🔒 sin empezar'))), onOpenTortuga && /*#__PURE__*/React.createElement("button", {
+  }, onOpenTortuga && /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: onOpenTortuga,
     style: {
-      marginTop: 6,
       background: 'none',
       border: 'none',
-      padding: 0,
+      padding: '8px 0',
       display: 'flex',
       alignItems: 'center',
       gap: 6,
       ...mn,
-      fontSize: 12,
+      fontSize: 13,
       color: B,
-      cursor: 'pointer'
+      cursor: 'pointer',
+      minHeight: 44
     }
-  }, /*#__PURE__*/React.createElement("span", null, "\u2190"), /*#__PURE__*/React.createElement("span", null, "misi\xF3n tortuga"))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("span", null, "\u2190"), /*#__PURE__*/React.createElement("span", null, "misi\xF3n tortuga")), onReplayOnboarding && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: onReplayOnboarding,
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 6,
+      background: Y,
+      borderRadius: 99,
+      padding: '10px 14px',
+      border: `2px solid ${D}`,
+      boxShadow: '2px 2px 0 0 #000',
+      ...mn,
+      fontSize: 13,
+      fontWeight: 600,
+      color: D,
+      cursor: 'pointer',
+      minHeight: 44,
+      WebkitTapHighlightColor: 'transparent'
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "\uD83D\uDC9B"), /*#__PURE__*/React.createElement("span", null, "ver historia")))), /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1,
       position: 'relative',
@@ -4508,7 +4535,8 @@ const App = () => {
   // render
   let content;
   if (view === 'splash') content = /*#__PURE__*/React.createElement(ScreenSplash, null);else if (view === 'onboard0') content = /*#__PURE__*/React.createElement(ScreenOnboard, {
-    onNext: () => setView('story1')
+    onNext: () => setView('story1'),
+    onBack: state.onboardingDone ? () => setView('home') : undefined
   });else if (view === 'story1') content = /*#__PURE__*/React.createElement(ScreenOnboardStory1, {
     onNext: () => setView('story2'),
     onBack: () => setView('onboard0')

@@ -690,12 +690,15 @@ const ScreenSplash = () => (
 // ════════════════════════════════════════════════════════════
 // ONBOARDING 1 — Hola
 // ════════════════════════════════════════════════════════════
-const ScreenOnboard = ({ onNext }) => (
+const ScreenOnboard = ({ onNext, onBack }) => (
   <Screen bg={W}>
     <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
       <div style={{ position:'relative', height:240, flexShrink:0 }}>
         <img src={P.onboardHero} style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }}/>
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(to bottom, transparent 40%, rgba(250,249,246,0.98) 100%)' }}/>
+        {onBack && (
+          <button type="button" onClick={onBack} style={{ position:'absolute', top:'calc(12px + env(safe-area-inset-top))', left:16, width:40, height:40, borderRadius:'50%', background:'rgba(255,255,255,0.9)', border:'none', display:'flex', alignItems:'center', justifyContent:'center', ...mn, fontSize:18, color:D, cursor:'pointer' }}>←</button>
+        )}
       </div>
       <div style={{ padding:'0 24px 24px', flex:1, display:'flex', flexDirection:'column' }}>
         <Badge>💛 solo para ari</Badge>
@@ -955,20 +958,20 @@ const ScreenHome = ({ state, currentDay, onOpenDay, onOpenCode, onOpenTortuga, o
       <div style={{ padding:'calc(10px + env(safe-area-inset-top)) 24px 4px', flexShrink:0 }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div style={{...mn, fontSize:26, fontWeight:700, color:D}}>ari</div>
-          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            {onReplayOnboarding && (
-              <button onClick={onReplayOnboarding} style={{ display:'inline-flex', alignItems:'center', gap:4, background:'white', borderRadius:99, padding:'5px 10px', border:`1.5px solid ${L}`, ...mn, fontSize:10, fontWeight:600, color:G, cursor:'pointer', WebkitTapHighlightColor:'transparent' }}>
-                <span>💛</span><span>historia</span>
-              </button>
-            )}
-            <Badge>{missionStarted ? `día ${currentDay} / 7` : '🔒 sin empezar'}</Badge>
-          </div>
+          <Badge>{missionStarted ? `día ${currentDay} / 7` : '🔒 sin empezar'}</Badge>
         </div>
-        {onOpenTortuga && (
-          <button onClick={onOpenTortuga} style={{ marginTop:6, background:'none', border:'none', padding:0, display:'flex', alignItems:'center', gap:6, ...mn, fontSize:12, color:B, cursor:'pointer' }}>
-            <span>←</span><span>misión tortuga</span>
-          </button>
-        )}
+        <div style={{ display:'flex', gap:10, marginTop:10, flexWrap:'wrap', alignItems:'center' }}>
+          {onOpenTortuga && (
+            <button type="button" onClick={onOpenTortuga} style={{ background:'none', border:'none', padding:'8px 0', display:'flex', alignItems:'center', gap:6, ...mn, fontSize:13, color:B, cursor:'pointer', minHeight:44 }}>
+              <span>←</span><span>misión tortuga</span>
+            </button>
+          )}
+          {onReplayOnboarding && (
+            <button type="button" onClick={onReplayOnboarding} style={{ display:'inline-flex', alignItems:'center', gap:6, background:Y, borderRadius:99, padding:'10px 14px', border:`2px solid ${D}`, boxShadow:'2px 2px 0 0 #000', ...mn, fontSize:13, fontWeight:600, color:D, cursor:'pointer', minHeight:44, WebkitTapHighlightColor:'transparent' }}>
+              <span>💛</span><span>ver historia</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <div style={{ flex:1, position:'relative', margin:'0 24px', overflow:'auto' }}>
@@ -1613,7 +1616,7 @@ const App = () => {
   // render
   let content;
   if(view==='splash') content = <ScreenSplash/>;
-  else if(view==='onboard0') content = <ScreenOnboard onNext={()=>setView('story1')}/>;
+  else if(view==='onboard0') content = <ScreenOnboard onNext={()=>setView('story1')} onBack={state.onboardingDone ? ()=>setView('home') : undefined}/>;
   else if(view==='story1') content = <ScreenOnboardStory1 onNext={()=>setView('story2')} onBack={()=>setView('onboard0')}/>;
   else if(view==='story2') content = <ScreenOnboardStory2 onNext={()=>setView('onboard1')} onBack={()=>setView('story1')}/>;
   else if(view==='onboard1') content = <ScreenOnboardMemories onNext={()=>setView('onboard2')}/>;
