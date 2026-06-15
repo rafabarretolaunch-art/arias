@@ -655,7 +655,7 @@ const ScreenOnboard = ({ onNext }) => (
 // ════════════════════════════════════════════════════════════
 // ONBOARDING — Historia (pantallas de bienvenida con foto + relato)
 // ════════════════════════════════════════════════════════════
-const ScreenOnboardStory = ({ photo, photoPos='center top', chapter, accent=B, title, body, sign, dotIndex, dotCount, onNext, onBack }) => (
+const ScreenOnboardStory = ({ photo, photoPos='center top', chapter, accent=B, title, subtitle, body, sign, dotIndex, dotCount, onNext, onBack }) => (
   <Screen bg={W}>
     <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'auto' }}>
       <div style={{ position:'relative', height:270, flexShrink:0 }}>
@@ -671,6 +671,7 @@ const ScreenOnboardStory = ({ photo, photoPos='center top', chapter, accent=B, t
       </div>
       <div style={{ padding:'0 24px 24px', flex:1, display:'flex', flexDirection:'column', marginTop:-8 }}>
         <div style={{...mn, fontSize:25, fontWeight:700, color:D, lineHeight:1.15, flexShrink:0}}>{title}</div>
+        {subtitle && <div style={{...sk, fontSize:16, color:accent, marginTop:6, flexShrink:0}}>{subtitle}</div>}
         <div style={{ marginTop:12, background:'white', borderRadius:14, padding:'14px 16px', border:`1.5px dashed ${L}`, flexShrink:0, ...sk, fontSize:17, color:'#555', lineHeight:1.6 }}>{body}</div>
         {sign && <div style={{...sk, fontSize:16, color:accent, marginTop:10, flexShrink:0}}>{sign}</div>}
         <div style={{ display:'flex', gap:6, marginTop:12, flexShrink:0 }}>
@@ -686,7 +687,7 @@ const ScreenOnboardStory = ({ photo, photoPos='center top', chapter, accent=B, t
 const ScreenOnboardStory1 = ({ onNext, onBack }) => (
   <ScreenOnboardStory
     photo={P.onboardTog1} photoPos="center top" chapter="capítulo uno" accent={R}
-    title={<>Todo empezó<br/><span style={{color:R}}>con un sí.</span></>}
+    title={<>Todo empezó<br/><span style={{color:R}}>contigo.</span></>}
     body={<>"Desde el primer día supe que contigo<br/>cada momento se volvía una aventura.<br/>Y todavía me quedan muchas<br/>por vivir a tu lado."</>}
     sign="— y aquí seguimos 💛"
     dotIndex={1} dotCount={5} onNext={onNext} onBack={onBack}/>
@@ -696,7 +697,8 @@ const ScreenOnboardStory2 = ({ onNext, onBack }) => (
   <ScreenOnboardStory
     photo="photos/couple7.jpg" photoPos="center top" chapter="capítulo dos" accent={B}
     title={<>Mira todo lo que<br/><span style={{color:B}}>llevamos vivido.</span></>}
-    body={<>"Viajes, risas, fotos, sitios nuevos<br/>y mil planes a medias.<br/>Esto es solo un repaso<br/>de lo nuestro… y de lo que viene."</>}
+    subtitle="(tu regalo de cumple nos lo enseña)"
+    body={<>"Viajes, risas, fotos, sitios nuevos<br/>y mil planes a medias."</>}
     sign="— pasa la página ✦"
     dotIndex={2} dotCount={5} onNext={onNext} onBack={onBack}/>
 );

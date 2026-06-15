@@ -1581,6 +1581,7 @@ const ScreenOnboardStory = ({
   chapter,
   accent = B,
   title,
+  subtitle,
   body,
   sign,
   dotIndex,
@@ -1682,7 +1683,15 @@ const ScreenOnboardStory = ({
     lineHeight: 1.15,
     flexShrink: 0
   }
-}, title), /*#__PURE__*/React.createElement("div", {
+}, title), subtitle && /*#__PURE__*/React.createElement("div", {
+  style: {
+    ...sk,
+    fontSize: 16,
+    color: accent,
+    marginTop: 6,
+    flexShrink: 0
+  }
+}, subtitle), /*#__PURE__*/React.createElement("div", {
   style: {
     marginTop: 12,
     background: 'white',
@@ -1743,7 +1752,7 @@ const ScreenOnboardStory1 = ({
     style: {
       color: R
     }
-  }, "con un s\xED.")),
+  }, "contigo.")),
   body: /*#__PURE__*/React.createElement(React.Fragment, null, "\"Desde el primer d\xEDa supe que contigo", /*#__PURE__*/React.createElement("br", null), "cada momento se volv\xEDa una aventura.", /*#__PURE__*/React.createElement("br", null), "Y todav\xEDa me quedan muchas", /*#__PURE__*/React.createElement("br", null), "por vivir a tu lado.\""),
   sign: "\u2014 y aqu\xED seguimos \uD83D\uDC9B",
   dotIndex: 1,
@@ -1764,7 +1773,8 @@ const ScreenOnboardStory2 = ({
       color: B
     }
   }, "llevamos vivido.")),
-  body: /*#__PURE__*/React.createElement(React.Fragment, null, "\"Viajes, risas, fotos, sitios nuevos", /*#__PURE__*/React.createElement("br", null), "y mil planes a medias.", /*#__PURE__*/React.createElement("br", null), "Esto es solo un repaso", /*#__PURE__*/React.createElement("br", null), "de lo nuestro\u2026 y de lo que viene.\""),
+  subtitle: "(tu regalo de cumple nos lo ense\xF1a)",
+  body: /*#__PURE__*/React.createElement(React.Fragment, null, "\"Viajes, risas, fotos, sitios nuevos", /*#__PURE__*/React.createElement("br", null), "y mil planes a medias.\""),
   sign: "\u2014 pasa la p\xE1gina \u2726",
   dotIndex: 2,
   dotCount: 5,
