@@ -1029,7 +1029,7 @@ const DinoGame = ({
       ctx.fillText(String(Math.floor(score)).padStart(3, '0'), W - 10, 18);
       ctx.fillStyle = 'rgba(255,255,255,0.25)';
       ctx.font = '10px sans-serif';
-      ctx.fillText('best: ' + bestScore, W - 10, 32);
+      ctx.fillText('rècord: ' + bestScore, W - 10, 32);
       ctx.textAlign = 'left';
       if (status !== 'running') {
         ctx.fillStyle = 'rgba(0,0,0,0.45)';
@@ -1038,20 +1038,20 @@ const DinoGame = ({
         if (status === 'ready') {
           ctx.fillStyle = '#FFD600';
           ctx.font = '700 17px sans-serif';
-          ctx.fillText('TOCA PARA SALTAR', W / 2, H / 2 - 4);
+          ctx.fillText('TOCA PER SALTAR', W / 2, H / 2 - 4);
           ctx.fillStyle = 'rgba(255,255,255,0.6)';
           ctx.font = '12px sans-serif';
-          ctx.fillText('esquiva las hormigas', W / 2, H / 2 + 16);
+          ctx.fillText('esquiva les formigues', W / 2, H / 2 + 16);
         } else {
           ctx.fillStyle = '#E0243A';
           ctx.font = '700 18px sans-serif';
-          ctx.fillText('¡TE PILLARON!', W / 2, H / 2 - 10);
+          ctx.fillText('T\'HAN AGAFAT!', W / 2, H / 2 - 10);
           ctx.fillStyle = 'white';
           ctx.font = '700 15px sans-serif';
-          ctx.fillText('puntuación ' + Math.floor(score), W / 2, H / 2 + 11);
+          ctx.fillText('puntuació ' + Math.floor(score), W / 2, H / 2 + 11);
           ctx.fillStyle = 'rgba(255,255,255,0.6)';
           ctx.font = '12px sans-serif';
-          ctx.fillText('toca para reintentar', W / 2, H / 2 + 31);
+          ctx.fillText('toca per reintentar', W / 2, H / 2 + 31);
         }
         ctx.textAlign = 'left';
       }
@@ -2474,7 +2474,7 @@ const DAYS = [{
 }, {
   n: 2,
   photo: P.day2Circle,
-  title: 'El Dinosaurio y las Hormigas',
+  title: 'El Dinosaure i les Formigues',
   short: 'Dino'
 }, {
   n: 3,
@@ -3025,7 +3025,7 @@ const ScreenDay2 = ({
   }, /*#__PURE__*/React.createElement(DayHeader, {
     src: P.ctaThumb,
     dayN: 2,
-    label: "\uD83C\uDFAE juego",
+    label: "\uD83C\uDFAE joc",
     color: Y,
     onBack: onBack
   }), /*#__PURE__*/React.createElement("div", {
@@ -3045,7 +3045,7 @@ const ScreenDay2 = ({
       marginBottom: 5,
       flexShrink: 0
     }
-  }, "El Dinosaurio y las Hormigas"), /*#__PURE__*/React.createElement("div", {
+  }, "El Dinosaure i les Formigues"), /*#__PURE__*/React.createElement("div", {
     style: {
       ...mn,
       fontSize: 13,
@@ -3054,7 +3054,7 @@ const ScreenDay2 = ({
       marginBottom: 10,
       flexShrink: 0
     }
-  }, "Toca la pantalla para saltar. Esquiva las hormigas. Solo cuenta tu mejor marca del d\xEDa."), /*#__PURE__*/React.createElement("div", {
+  }, "Toca la pantalla per saltar. Esquiva les formigues. Nom\xE9s compta la teva millor marca del dia."), /*#__PURE__*/React.createElement("div", {
     style: {
       borderRadius: 14,
       overflow: 'hidden',
@@ -3082,7 +3082,7 @@ const ScreenDay2 = ({
       textTransform: 'uppercase',
       marginBottom: 2
     }
-  }, "mejor puntuaci\xF3n"), /*#__PURE__*/React.createElement("div", {
+  }, "millor puntuaci\xF3"), /*#__PURE__*/React.createElement("div", {
     style: {
       ...mn,
       fontSize: 22,
@@ -3096,7 +3096,8 @@ const ScreenDay2 = ({
   })), /*#__PURE__*/React.createElement(CompleteBar, {
     done: !!api.completed[2],
     onToggle: () => api.toggleDay(2),
-    labelTodo: "\u2713 Registrar mejor marca",
+    labelTodo: "\u2713 Registrar millor marca",
+    labelDone: "\u2713 Completat",
     bg: Y
   }));
 };

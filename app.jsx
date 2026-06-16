@@ -543,7 +543,7 @@ const DinoGame = ({ best = 0, onResult }) => {
       ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = '600 13px sans-serif';
       ctx.fillText(String(Math.floor(score)).padStart(3,'0'), W-10, 18);
       ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.font = '10px sans-serif';
-      ctx.fillText('best: ' + bestScore, W-10, 32);
+          ctx.fillText('rècord: ' + bestScore, W-10, 32);
       ctx.textAlign = 'left';
 
       if(status !== 'running'){
@@ -551,16 +551,16 @@ const DinoGame = ({ best = 0, onResult }) => {
         ctx.textAlign = 'center';
         if(status === 'ready'){
           ctx.fillStyle = '#FFD600'; ctx.font = '700 17px sans-serif';
-          ctx.fillText('TOCA PARA SALTAR', W/2, H/2 - 4);
+          ctx.fillText('TOCA PER SALTAR', W/2, H/2 - 4);
           ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = '12px sans-serif';
-          ctx.fillText('esquiva las hormigas', W/2, H/2 + 16);
+          ctx.fillText('esquiva les formigues', W/2, H/2 + 16);
         } else {
           ctx.fillStyle = '#E0243A'; ctx.font = '700 18px sans-serif';
-          ctx.fillText('¡TE PILLARON!', W/2, H/2 - 10);
+          ctx.fillText('T\'HAN AGAFAT!', W/2, H/2 - 10);
           ctx.fillStyle = 'white'; ctx.font = '700 15px sans-serif';
-          ctx.fillText('puntuación ' + Math.floor(score), W/2, H/2 + 11);
+          ctx.fillText('puntuació ' + Math.floor(score), W/2, H/2 + 11);
           ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = '12px sans-serif';
-          ctx.fillText('toca para reintentar', W/2, H/2 + 31);
+          ctx.fillText('toca per reintentar', W/2, H/2 + 31);
         }
         ctx.textAlign = 'left';
       }
@@ -917,7 +917,7 @@ const ScreenMisionReveal = ({ onStart, onBack, started=false }) => (
 // ── metadatos de los 7 días (para Home y router) ──
 const DAYS = [
   { n:1, photo:P.day1Circle, title:'El Lugar Secreto', short:'Simetría' },
-  { n:2, photo:P.day2Circle, title:'El Dinosaurio y las Hormigas', short:'Dino' },
+  { n:2, photo:P.day2Circle, title:'El Dinosaure i les Formigues', short:'Dino' },
   { n:3, photo:P.sobresDay3, title:'El Submarino', short:'Submarino' },
   { n:4, photo:P.day4Bg, title:'El Día de la Vergüenza', short:'Vergüenza' },
   { n:5, photo:P.sobresDay1, title:'Las Nutrias', short:'Las Nutrias' },
@@ -1116,18 +1116,18 @@ const ScreenDay2 = ({ api, onBack }) => {
   const best = (api.scores && api.scores[2]) || 0;
   return (
   <Screen bg={W}>
-    <DayHeader src={P.ctaThumb} dayN={2} label="🎮 juego" color={Y} onBack={onBack}/>
+    <DayHeader src={P.ctaThumb} dayN={2} label="🎮 joc" color={Y} onBack={onBack}/>
     <div style={{ flex:1, display:'flex', flexDirection:'column', padding:'8px 20px 0', overflow:'auto' }}>
-      <div style={{...mn, fontSize:21, fontWeight:700, color:D, marginBottom:5, flexShrink:0}}>El Dinosaurio y las Hormigas</div>
-      <div style={{...mn, fontSize:13, color:G, lineHeight:1.6, marginBottom:10, flexShrink:0}}>Toca la pantalla para saltar. Esquiva las hormigas. Solo cuenta tu mejor marca del día.</div>
+      <div style={{...mn, fontSize:21, fontWeight:700, color:D, marginBottom:5, flexShrink:0}}>El Dinosaure i les Formigues</div>
+      <div style={{...mn, fontSize:13, color:G, lineHeight:1.6, marginBottom:10, flexShrink:0}}>Toca la pantalla per saltar. Esquiva les formigues. Només compta la teva millor marca del dia.</div>
       <div style={{ borderRadius:14, overflow:'hidden', border:`2px solid ${L}`, flexShrink:0 }}><DinoGame best={best} onResult={(sc)=>api.setBest(2, sc)}/></div>
       <div style={{ marginTop:10, background:W, borderRadius:12, padding:'11px 16px', border:`1.5px solid ${L}`, flexShrink:0 }}>
-        <div style={{...mn, fontSize:9, color:G, letterSpacing:1, textTransform:'uppercase', marginBottom:2}}>mejor puntuación</div>
+        <div style={{...mn, fontSize:9, color:G, letterSpacing:1, textTransform:'uppercase', marginBottom:2}}>millor puntuació</div>
         <div style={{...mn, fontSize:22, fontWeight:700, color:Y}}>{best}</div>
       </div>
       <div style={{ height:12 }}/>
     </div>
-    <CompleteBar done={!!api.completed[2]} onToggle={()=>api.toggleDay(2)} labelTodo="✓ Registrar mejor marca" bg={Y} />
+    <CompleteBar done={!!api.completed[2]} onToggle={()=>api.toggleDay(2)} labelTodo="✓ Registrar millor marca" labelDone="✓ Completat" bg={Y} />
   </Screen>
   );
 };
