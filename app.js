@@ -1,3 +1,4 @@
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 // ════════════════════════════════════════════════════════════
 // ari — PWA (adaptado de la maqueta Hi-Fi a app navegable real)
 // ════════════════════════════════════════════════════════════
@@ -434,14 +435,17 @@ const UploadZone = ({
   photo,
   onPick,
   height = 140,
-  hint = 'toca para tomar la foto'
+  hint = 'toca para tomar la foto',
+  allowGallery = false
 }) => {
   const inputRef = useRef();
-  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("input", {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("input", _extends({
     ref: inputRef,
     type: "file",
-    accept: "image/*",
-    capture: "environment",
+    accept: "image/*"
+  }, allowGallery ? {} : {
+    capture: 'environment'
+  }, {
     style: {
       display: 'none'
     },
@@ -450,7 +454,7 @@ const UploadZone = ({
       if (f) onPick(f);
       e.target.value = '';
     }
-  }), /*#__PURE__*/React.createElement("div", {
+  })), /*#__PURE__*/React.createElement("div", {
     onClick: () => inputRef.current && inputRef.current.click(),
     style: {
       height,
@@ -2990,7 +2994,8 @@ const ScreenDay1 = ({
   }, /*#__PURE__*/React.createElement(UploadZone, {
     photo: photo,
     onPick: f => api.setPhoto(1, f),
-    hint: status === 'rejected' ? 'sube otra foto' : 'toca para tomar la foto'
+    allowGallery: true,
+    hint: status === 'rejected' ? 'sube otra foto' : 'cámara o galería 📷'
   })), /*#__PURE__*/React.createElement(ProofShare, {
     title: "La Simetr\xEDa Perfecta",
     accent: B

@@ -233,11 +233,11 @@ const DayHeader = ({ src, pos='center top', dayN, label, color=B, onBack }) => (
 );
 
 // zona de subida de foto reutilizable
-const UploadZone = ({ photo, onPick, height=140, hint='toca para tomar la foto' }) => {
+const UploadZone = ({ photo, onPick, height=140, hint='toca para tomar la foto', allowGallery=false }) => {
   const inputRef = useRef();
   return (
     <>
-      <input ref={inputRef} type="file" accept="image/*" capture="environment" style={{display:'none'}}
+      <input ref={inputRef} type="file" accept="image/*" {...(allowGallery ? {} : { capture:'environment' })} style={{display:'none'}}
         onChange={(e)=>{ const f=e.target.files&&e.target.files[0]; if(f) onPick(f); e.target.value=''; }}/>
       <div onClick={()=>inputRef.current&&inputRef.current.click()} style={{
         height, borderRadius:16, border:`2px dashed ${L}`, background:'rgba(0,0,0,0.02)',
@@ -1099,7 +1099,7 @@ const ScreenDay1 = ({ api, onBack }) => {
           </div>
         )}
         <div style={{ marginTop:12 }}>
-          <UploadZone photo={photo} onPick={(f)=>api.setPhoto(1,f)} hint={status==='rejected'?'sube otra foto':'toca para tomar la foto'}/>
+          <UploadZone photo={photo} onPick={(f)=>api.setPhoto(1,f)} allowGallery hint={status==='rejected'?'sube otra foto':'cámara o galería 📷'}/>
         </div>
         <ProofShare title="La Simetría Perfecta" accent={B}/>
         <div style={{ height:12 }}/>
